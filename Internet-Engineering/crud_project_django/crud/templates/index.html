@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %} index {% endblock %}
+{% block body %}
+    <br>
+    <div>
+        <a href="./addpart" class="btn btn-success offset-md-2">+ create new part</a>
+        {% if parts|length > 0 %}
+            <a href="./genchart" class="btn btn-outline-info  offset-md-5">generate chart</a>
+        {% endif %}
+    </div>
+    <br>
+    {% for part in parts %}
+        <div class="row">
+
+            <div class="card col-md-8 offset-md-2">
+                <div class="card-body">
+                    <h5 class="card-title">{{ part.name }}</h5>
+                    <p class="card-text">{{ part.end }} | {{ part.start }} | {{ part.day_str }} | {{ part.comments }} | {{ part.professor }}</p>
+                    <a href="{{ part.detail_url }}" class="btn btn-primary">preview</a>
+                    <a href="{{ part.edit_url }}" class="btn btn-warning">edit</a>
+                    <a href="{{ part.rm_url }}" class="btn btn-danger">delete</a>
+                </div>
+            </div>
+        </div>
+
+    {% endfor %}
+
+    <div class="row card card-body col-md-8 offset-md-2">
+        <h5 class="card-title">اضافه کردن پارت ها از طریق فرم انتخاب واحد سامانه دانشگاه</h5>
+        <form method="POST" action="./gdfsada">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="sadaUsername">Username of sada.guilan.ac.ir</label>
+                <input type="text" class="form-control" id="sadaUsername" name="un" placeholder="Enter username" value="950122680007">
+                <small id="sadaUnHelp" class="form-text text-muted">We'll get your parts data from sada.guilan.ac.ir to generate chart.</small>
+            </div>
+            <div class="form-group">
+                <label for="sadaPassword">Password of sada.guilan.ac.ir</label>
+                <input type="password" class="form-control" id="sadaPassword" name="pw" placeholder="Password" value="2730226095">
+            </div>
+            <button type="submit" class="btn btn-dark">Get SadaGuilan Parts</button>
+        </form>
+    </div>
+
+    
+{% endblock %}
