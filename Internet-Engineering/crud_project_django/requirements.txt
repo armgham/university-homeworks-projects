@@ -13,6 +13,7 @@ lazy-object-proxy==1.4.3
 lxml==4.5.0
 matplotlib==3.2.1
 mccabe==0.6.1
+mysqlclient==1.4.6
 numpy==1.18.3
 pylint==2.4.4
 pyparsing==2.4.7
