@@ -1,0 +1,84 @@
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+
+parser code  {:
+	protected Lexer lexer;
+:}
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+:};
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal			DEFINE, IDENTIFIER, IF, DO, DISPLAY, GREATER_THAN, STRING_LITERAL, BOOLEAN_LITERAL, RELATIONAL_OPERATOR, INTEGER_LITERAL, MATHEMATICAL_OPERATOR, NEW_LINE;
+terminal 			LPAREN, RPAREN;
+
+/* Non terminals */
+non terminal		expr_list, defines, define, call_define, define_name, define_body, define_in,
+										 body_in, statment, if_statment, if_cond, do_statment, math_calc,
+										 output_code, literal, var, vars;
+
+/* The grammar rules */
+expr_list	::= 		defines call_define {: System.out.println("******   successfully passed!!!   *******"); :};
+
+defines		::=			define
+						 | define defines;
+
+define		::= 		LPAREN define_name define_body RPAREN
+						 | LPAREN DEFINE IDENTIFIER:e {: System.out.println("define name: " + e); :} var RPAREN;
+
+define_name ::= 		DEFINE LPAREN IDENTIFIER:e {: System.out.println("define name: " + e); :} define_in RPAREN;
+
+define_in	::= 		IDENTIFIER:e {: System.out.println("define in identifier: " + e); :}
+						 | IDENTIFIER:e {: System.out.println("define in identifier: " + e); :} define_in;
+
+vars		::=			var
+						 | var vars;
+
+define_body ::= 		body_in;
+
+body_in		::= 		statment 
+						 | statment body_in;
+
+statment	::= 		if_statment{: System.out.println("if statment"); :}
+						 | do_statment{: System.out.println("do statment (loop)"); :}
+						 | literal 
+						 | output_code;
+
+if_statment ::= 		LPAREN IF if_cond{: System.out.println("if condition scope"); :} body_in RPAREN;
+
+if_cond		::= 		BOOLEAN_LITERAL 
+						 | LPAREN RELATIONAL_OPERATOR vars RPAREN;
+
+var			::=			INTEGER_LITERAL:e {: System.out.println("int identifier: " + e); :}
+						 | IDENTIFIER:e {: System.out.println("identifier: " + e); :}
+						 | call_define;
+
+do_statment	::= 		LPAREN DO LPAREN LPAREN IDENTIFIER var math_calc RPAREN RPAREN LPAREN if_cond RPAREN body_in RPAREN;
+
+math_calc	::= 		LPAREN MATHEMATICAL_OPERATOR vars RPAREN;
+
+output_code	::= 		LPAREN NEW_LINE RPAREN 
+						 | LPAREN DISPLAY literal RPAREN;
+
+literal		::= 		STRING_LITERAL:e {: System.out.println("string literal: " + e); :}
+						 | INTEGER_LITERAL
+						 | BOOLEAN_LITERAL;
+
+call_define	::=			LPAREN IDENTIFIER:e {: System.out.println("call identifire: " + e); :} vars RPAREN;

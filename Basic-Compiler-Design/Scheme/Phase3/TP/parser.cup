@@ -1,0 +1,197 @@
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+
+
+action code  {:
+	java.util.ArrayList<Variable> varTable = new java.util.ArrayList<Variable>();
+	java.util.ArrayList<Variable> tmp = new java.util.ArrayList<Variable>();
+	public Variable tmpFuncVar = new Variable("", "");
+	public int counter;
+
+:}
+
+parser code  {:
+	protected Lexer lexer;
+:}
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+:}; 
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal			DEFINE, IF, DO, DISPLAY, BOOLEAN_LITERAL, RELATIONAL_OPERATOR, MATHEMATICAL_OPERATOR, NEW_LINE;
+terminal 			LPAREN, RPAREN;
+terminal String		IDENTIFIER, STRING_LITERAL;
+terminal Integer	INTEGER_LITERAL;
+terminal Float 		FLOAT_LITERAL;
+/* Non terminals */
+non terminal		expr_list, defines, define, call_define, define_name, define_body, define_in,
+										 body_in, statment, if_statment, if_cond, do_statment, math_calc,
+										 output_code, literal, var, vars, ident_declare, call_define_vars;
+
+/* The grammar rules */
+expr_list	::= 		defines call_define {: System.out.println("******   successfully passed!!!   *******"); :};
+
+defines		::=			define
+						 | defines define;
+
+define		::= 		LPAREN define_name define_body RPAREN
+						 | LPAREN DEFINE IDENTIFIER:e var:v  RPAREN{:
+																if (varTable.contains(new Variable(e))){
+                                									Variable vr = varTable.get(varTable.indexOf(new Variable(e)));
+                                									if (!vr.getType().equals(v.getClass().getTypeName().substring(10).toUpperCase())){
+                                        								System.out.println(vr.getName() + " error not same types!" + vr.getType() + " " + v.getClass().getTypeName().substring(10).toUpperCase());
+																		}
+																}
+                            									else {
+                                									varTable.add(new Variable(e, v.getClass().getTypeName().substring(10).toUpperCase()));
+																	System.out.println("ident " + e + " type " + v.getClass().getTypeName().substring(10).toUpperCase());
+                            									} :};
+
+define_name ::= 		DEFINE LPAREN IDENTIFIER:e define_in RPAREN{:
+																if (!varTable.contains(new Variable(e))){
+																	varTable.add(new Variable(e, "FUNCTION"));
+																	System.out.println("ident " + e + " type FUNCTION");
+
+
+
+
+																	for(int i=0; i<tmp.size(); i++){
+																				varTable.get(varTable.size()-1).getVars().add(new Variable(tmp.get(i).getName()));
+																			}
+																}
+																else{
+																	System.out.println("already exist with same name!");
+																}
+																	 :};
+
+define_in	::= 		ident_declare
+						 | ident_declare define_in;
+
+ident_declare::=		IDENTIFIER:e {:
+										tmp.add(new Variable(e));
+										System.out.println("a variable in define : " + e);
+									 :};
+
+vars		::=			var
+						 | var vars;
+
+define_body ::= 		body_in;
+
+body_in		::= 		statment 
+						 | statment body_in;
+
+statment	::= 		if_statment
+						 | do_statment
+						 | literal
+						 | output_code
+						 | define;
+
+if_statment ::= 		LPAREN IF if_cond body_in RPAREN;
+
+if_cond		::= 		BOOLEAN_LITERAL:e
+						 | LPAREN RELATIONAL_OPERATOR vars RPAREN;
+
+var			::=			literal:e {: RESULT=e;:}
+						 | IDENTIFIER:e {: RESULT=e;:};
+						 //| call_define:e {: RESULT=e;:};
+
+do_statment	::= 		LPAREN DO LPAREN LPAREN IDENTIFIER var math_calc RPAREN RPAREN LPAREN if_cond RPAREN body_in RPAREN;
+
+math_calc	::= 		LPAREN MATHEMATICAL_OPERATOR vars RPAREN;
+
+output_code	::= 		LPAREN NEW_LINE RPAREN 
+						 | LPAREN DISPLAY literal RPAREN;
+
+literal		::= 		STRING_LITERAL:e {: RESULT = e; :}
+						 | INTEGER_LITERAL:e {: RESULT = e; :}
+						 | FLOAT_LITERAL:e {: RESULT = e; :};
+						 //| BOOLEAN_LITERAL:e {: RESULT = e; :}
+
+
+call_define	::=			LPAREN IDENTIFIER:e {: 
+															if (!varTable.contains(new Variable(e))){
+																System.out.println("function " + e + " does't exist!");
+															}
+															else{
+																tmpFuncVar = varTable.get(varTable.indexOf(new Variable(e)));
+																counter = 0;
+															}
+																:} 
+																
+						call_define_vars RPAREN{:
+												if (counter < tmpFuncVar.getVars().size())
+													System.out.println("number of call function arguments is lower than expected number");
+											 :};
+						
+						
+call_define_vars::=		IDENTIFIER:e {:
+										if(counter>=tmpFuncVar.getVars().size()) {
+													System.out.println("number of call function arguments is greater than expected number");
+												}
+										else {
+											if (!varTable.contains(new Variable(e))){
+												System.out.println("This identifier doesn't exist! " + e);
+											}
+											else {
+												Variable vr = varTable.get(varTable.indexOf(new Variable(e)));
+												tmpFuncVar.getVars().get(counter).setType(vr.getType());
+											}
+										} 
+										counter++;
+									 :}
+						 | call_define_vars IDENTIFIER:e {:
+										if(counter>=tmpFuncVar.getVars().size()) {
+													System.out.println("number of call function arguments is greater than expected number");
+												}
+										else {
+											if (!varTable.contains(new Variable(e))){
+												System.out.println("This identifier doesn't exist! " + e);
+											}
+											else {
+												Variable vr = varTable.get(varTable.indexOf(new Variable(e)));
+												tmpFuncVar.getVars().get(counter).setType(vr.getType());
+											}
+											
+										}
+										counter++;
+									 :}
+						 | literal:e {:
+										if(counter>=tmpFuncVar.getVars().size()) {
+													System.out.println("number of call function arguments is greater than expected number");
+												}
+										else {
+											tmpFuncVar.getVars().get(counter).setType(e.getClass().getTypeName().substring(10).toUpperCase());
+											}
+										counter++;
+									 :}
+						 | call_define_vars literal:e {:
+										if(counter>=tmpFuncVar.getVars().size()) {
+													System.out.println("number of call function arguments is greater than expected number");
+												}
+										else {
+											tmpFuncVar.getVars().get(counter).setType(e.getClass().getTypeName().substring(10).toUpperCase());
+											}
+										counter++;
+									 :};
+
+
+
+

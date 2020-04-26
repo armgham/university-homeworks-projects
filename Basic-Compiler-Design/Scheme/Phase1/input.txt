@@ -1,0 +1,28 @@
+(+ 2 2)
+(define a 2)
+(cons 1 2)
+(+ 3 (+ 1 2))
+(define my-name "unknown")
+(set! my-name "NalaGinrut")
+(display "I'm Guile. Nice to meet you!\n")
+
+(let ((me "Bob"))
+  "Alice"
+  me)
+
+9999999999999999999999 ; integers
+#b111                  ; binary => 7
+#o111                  ; octal => 73
+#x111                  ; hexadecimal => 273
+3.14                   ; reals
+6.02e+23
+
+
+
+1/2                    ; rationals
+1+2i                   ; complex numbers
+(+ 1+2i  2-3i) ; => 3-1i
+(and 0 #f (error "doesn't get here")) ; => #f
+#\A ; => #\A
+#\λ ; => #\λ
+#\x03BB ; => #\λ

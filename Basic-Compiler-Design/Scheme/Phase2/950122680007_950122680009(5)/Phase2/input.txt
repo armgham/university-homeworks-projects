@@ -1,0 +1,7 @@
+(define x 5)
+(define y 2)
+(define (func x y)
+        (if (> x y) 
+                (do ((i 1 (+ i 1))) ((> i x)) (display "Hello World") (newline))
+                (display "Bye")))
+(func a 7)

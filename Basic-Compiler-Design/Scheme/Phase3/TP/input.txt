@@ -1,0 +1,9 @@
+(define x 2.2)
+(define y 2)
+(define (func x y)
+        (if #t
+                (do ((i 1 (+ i 1 1))) ((> i x)) (display "Hello World") (newline))
+                (display "Bye")))
+(define y "ali")
+
+(func 4 3)
